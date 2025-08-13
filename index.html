@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Juan Rizo — Portfolio</title>
+    <meta
+      name="description"
+      content="Portfolio of Juan Rizo — UC Berkeley CS student (May 2026). AI/ML, systems, security, and teaching."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ====== Header ====== -->
+    <header>
+      <div class="container nav">
+        <a class="brand" href="#home" aria-label="Go to top">
+          <span class="brand-badge" aria-hidden="true">💻</span>
+          <span>Juan Rizo</span>
+        </a>
+
+        <nav class="nav-links" aria-label="Primary">
+          <a href="#projects">Projects</a>
+          <a href="#skills">Skills</a>
+          <a href="#education">Education</a>
+          <a href="#experience">Experience</a>
+          <a href="#contact">Contact</a>
+          <a class="btn" href="#resume">Resume</a>
+        </nav>
+
+        <label class="menu-btn" for="menu-toggle" aria-label="Open menu"
+          >☰</label
+        >
+        <input id="menu-toggle" type="checkbox" aria-hidden="true" />
+      </div>
+
+      <!-- Mobile panel -->
+      <div class="container mobile-panel">
+        <div class="grid two">
+          <a class="btn" href="#projects">Projects</a>
+          <a class="btn" href="#skills">Skills</a>
+          <a class="btn" href="#education">Education</a>
+          <a class="btn" href="#experience">Experience</a>
+          <a class="btn" href="#contact">Contact</a>
+          <a class="btn" href="#resume">Resume</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="home" class="container">
+      <!-- ====== Hero ====== -->
+      <section class="hero">
+        <div class="card card-pad">
+          <div class="hero-inner">
+            <div>
+              <h1>
+                Hi, I'm <span>Juan Rizo</span> — CS student focused on AI/ML,
+                systems, and security
+              </h1>
+              <p>
+                I build reliable, human‑centered software and love teaching what
+                I learn. I’m bilingual (Spanish/English) and currently pursuing
+                a B.A. in Computer Science at UC Berkeley (May 2026). I enjoy
+                AI/ML, systems, and security — plus clean front‑end design tied
+                to solid back‑end fundamentals.
+              </p>
+              <div class="hero-cta">
+                <a class="btn" href="#projects">View Projects</a>
+                <a class="btn" href="#contact">Contact Me</a>
+                <button
+                  id="theme-toggle"
+                  class="btn"
+                  type="button"
+                  aria-pressed="false"
+                >
+                  Toggle Theme
+                </button>
+              </div>
+            </div>
+            <img
+              class="hero-photo"
+              src="images/JuanRizoPic.jpg"
+              alt="Portrait of Juan Rizo"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== Projects ====== -->
+      <section id="projects">
+        <div class="section-head">
+          <div>
+            <span class="kicker">Work</span>
+            <h2>Projects</h2>
+          </div>
+          <a class="btn" href="#" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+
+        <div class="grid projects">
+          <!-- Weight Loss Calculator -->
+          <article class="card card-pad project">
+            <div class="row">
+              <strong>Weight Loss Calculator — Team Lead</strong>
+            </div>
+            <p>
+              C++ application that computes BMI and generates customized diet
+              &amp; exercise plans. Added advanced user input to tailor goals
+              (weight loss or muscle gain). Led a small team using Visual Studio
+              for development/debugging and earned an innovation award.
+            </p>
+            <div class="stack">
+              <span class="tag">C++</span
+              ><span class="tag">Microsoft Visual Studio</span
+              ><span class="tag">CLI</span>
+            </div>
+            <div class="row" style="margin-top: 0.8rem">
+              <a class="btn" href="#" target="_blank" rel="noreferrer">Demo</a>
+              <a class="btn" href="#" target="_blank" rel="noreferrer">Repo</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ====== Skills ====== -->
+      <section id="skills">
+        <div class="section-head">
+          <div>
+            <span class="kicker">Toolkit</span>
+            <h2>Skills</h2>
+          </div>
+        </div>
+
+        <div class="grid skills">
+          <div class="card card-pad">
+            <h3>Programming Languages</h3>
+            <div class="skill-list">
+              <span class="tag">Python (advanced)</span
+              ><span class="tag">Java (advanced)</span>
+              <span class="tag">C</span
+              ><span class="tag">C++ (proficient)</span>
+              <span class="tag">SQL</span><span class="tag">Go</span>
+              <span class="tag">Scheme (proficient)</span
+              ><span class="tag">x86 Assembly (proficient)</span>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <h3>Web Technologies</h3>
+            <div class="skill-list">
+              <span class="tag">HTML5</span><span class="tag">CSS</span>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <h3>Tools</h3>
+            <div class="skill-list">
+              <span class="tag">IntelliJ</span
+              ><span class="tag">Microsoft Visual Studio</span>
+              <span class="tag">Git</span><span class="tag">PyCharm</span
+              ><span class="tag">Jupyter Notebook</span>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <h3>Languages</h3>
+            <div class="skill-list">
+              <span class="tag">Spanish</span><span class="tag">English</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== Education ====== -->
+      <section id="education">
+        <div class="section-head">
+          <div>
+            <span class="kicker">Academics</span>
+            <h2>Education</h2>
+          </div>
+        </div>
+        <div class="grid cards">
+          <div class="card card-pad">
+            <h3>University of California, Berkeley</h3>
+            <p><strong>B.A. in Computer Science</strong> — Expected May 2026</p>
+            <p>Berkeley, CA</p>
+          </div>
+          <div class="card card-pad">
+            <h3>College of Alameda</h3>
+            <p><strong>A.A.-T in Mathematics</strong> — May 2024</p>
+            <p>Alameda, CA</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== Experience ====== -->
+      <section id="experience">
+        <div class="section-head">
+          <div>
+            <span class="kicker">Background</span>
+            <h2>Experience</h2>
+          </div>
+        </div>
+        <div class="card card-pad timeline">
+          <div class="entry">
+            <h3>
+              Computer Science Tutor — Merritt College Learning Center
+              <span class="tag">Jan 2024 – May 2024</span>
+            </h3>
+            <p>
+              Assisted ~5 students weekly, improving grades and understanding of
+              coding and theory. Built interactive algorithm demos and skeleton
+              projects; clarified complex concepts (esp. Python) with hands‑on
+              examples.
+            </p>
+          </div>
+          <div class="entry">
+            <h3>
+              Math Tutor — Merritt College Learning Center
+              <span class="tag">Jan 2024 – May 2024</span>
+            </h3>
+            <p>
+              Tutored ~10 students weekly in calculus, algebra, and differential
+              equations. Created custom materials and videos that boosted grades
+              by ~10%; organized study groups to foster peer learning and
+              effective time management.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== Resume (optional anchor) ====== -->
+      <section id="resume">
+        <div class="section-head">
+          <div>
+            <span class="kicker">Docs</span>
+            <h2>Resume</h2>
+          </div>
+          <a class="btn" href="images/JuanRizoResume.pdf" download
+            >Download PDF</a
+          >
+        </div>
+        <div class="card card-pad">
+          <p>
+            One page; highlight impact (numbers, outcomes). This link points to
+            your uploaded PDF in <code>assets/docs/</code>.
+          </p>
+        </div>
+      </section>
+
+      <!-- ====== Contact ====== -->
+      <section id="contact">
+        <div class="section-head">
+          <div>
+            <span class="kicker">Get in touch</span>
+            <h2>Contact</h2>
+          </div>
+        </div>
+
+        <div class="grid contact-grid">
+          <form id="contact-form" class="card card-pad" novalidate>
+            <label>
+              <span>Your Email</span>
+              <input
+                type="email"
+                name="email"
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+            <label>
+              <span>Subject</span>
+              <input
+                name="subject"
+                placeholder="Let's build something"
+                required
+              />
+            </label>
+            <label>
+              <span>Message</span>
+              <textarea
+                name="message"
+                placeholder="Hi! I saw your portfolio and..."
+                required
+              ></textarea>
+            </label>
+
+            <!-- Honeypot field for spam bots -->
+            <input
+              type="text"
+              name="_gotcha"
+              style="display: none"
+              tabindex="-1"
+              autocomplete="off"
+            />
+
+            <button class="btn" type="submit">Send</button>
+            <p
+              id="form-status"
+              role="status"
+              aria-live="polite"
+              style="margin: 0.5rem 0 0"
+            ></p>
+          </form>
+
+          <div class="card card-pad">
+            <h3>Elsewhere</h3>
+            <p>I'm active on these platforms:</p>
+            <div class="socials" aria-label="Social links">
+              <a
+                class="btn"
+                href="#"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="GitHub"
+                >GitHub</a
+              >
+              <a
+                class="btn"
+                href="https://linkedin.com/in/juan-rizo-aa726b313"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="LinkedIn"
+                >LinkedIn</a
+              >
+              <a
+                class="btn"
+                href="mailto:juand_rizo@berkeley.edu"
+                aria-label="Email"
+                >Email</a
+              >
+            </div>
+            <p style="margin-top: 0.8rem">Berkeley, CA · 510‑239‑9631</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ====== Footer ====== -->
+    <footer>
+      <div class="container row" style="justify-content: space-between">
+        <span>© <span id="year"></span> Juan Rizo</span>
+        <a href="#home" class="btn" aria-label="Back to top">↑ Top</a>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
