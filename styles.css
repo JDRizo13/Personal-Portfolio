@@ -116,6 +116,46 @@ section { padding: 72px 0; }
 .skills { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .skill-list { display: flex; flex-wrap: wrap; gap: .5rem; }
 
+/* ====== Calculator UI ====== */
+.calc-form select,
+.calc-form input[type="number"] {
+  width: 100%;
+  padding: .65rem .8rem;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  border-radius: 12px;
+}
+.calc-form label > span {
+  display:block;
+  font-size:.85rem;
+  color: var(--muted);
+  margin-bottom:.25rem;
+}
+.calc-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: .75rem;
+}
+.calc-output {
+  margin-top: .9rem;
+  padding: .9rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--card) 85%, transparent 15%);
+}
+.result-grid {
+  display:grid;
+  grid-template-columns: repeat(2, minmax(120px,1fr));
+  gap:.75rem;
+  margin-bottom:.25rem;
+}
+.result-grid .num {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.muted { color: var(--muted); }
+
 /* Resume Embed  */
 .resume-embed {
   width: 100%;

@@ -173,4 +173,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ====== BMR & TDEE Calculator ======
+(function () {
+  const form = document.getElementById('bmr-form');
+  const out = document.getElementById('bmr-output');
+  if (!form || !out) return;
+
+  function fmt(n) { return Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 }); }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const sex = data.get('sex');
+    const age = Number(data.get('age'));
+    const height = Number(data.get('height'));   // cm
+    const weight = Number(data.get('weight'));   // kg
+    const activity = Number(data.get('activity'));
+
+    if (!sex || !age || !height || !weight || !activity) {
+      out.textContent = 'Please fill out all fields.';
+      return;
+    }
+
+    // Mifflin–St Jeor
+    const s = sex === 'male' ? 5 : -161;
+    const bmr = (10 * weight) + (6.25 * height) - (5 * age) + s;
+    const tdee = bmr * activity;
+
+    out.innerHTML = `
+      <div class="result-grid">
+        <div><strong>BMR</strong><div class="num">${fmt(bmr)} kcal/day</div></div>
+        <div><strong>TDEE</strong><div class="num">${fmt(tdee)} kcal/day</div></div>
+      </div>
+      <p class="muted">BMR uses the Mifflin–St Jeor equation; TDEE multiplies by your selected activity level.</p>
+    `;
+  });
+
+  form.addEventListener('reset', () => { out.textContent = ''; });
+})();
+
 });
