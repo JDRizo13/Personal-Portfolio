@@ -116,6 +116,19 @@ section { padding: 72px 0; }
 .skills { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .skill-list { display: flex; flex-wrap: wrap; gap: .5rem; }
 
+/* Resume Embed  */
+.resume-embed {
+  width: 100%;
+  height: min(90vh, 1100px); /* tall but not too tall */
+  border: 0;
+  display: block;
+}
+
+/* Optional: for small screens, prefer shorter height */
+@media (max-width: 640px) {
+  .resume-embed { height: 75vh; }
+}
+
 /* Experience */
 .timeline { position: relative; }
 .timeline::before { content: ""; position: absolute; left: 14px; top: 0; bottom: 0; width: 2px; background: var(--border); }
