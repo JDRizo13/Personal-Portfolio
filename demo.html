@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Demo – BMR & Weight Loss Calculator</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* Lightweight enhancements (keeps working with your styles.css) */
+      .demo-frame {
+        width: 100%;
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 12px;
+        min-height: 520px;
+        aspect-ratio: 16 / 10;
+        background: var(--card, #0b1220, #fff);
+      }
+      .calc-form { max-width: 840px; }
+      .calc-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .row { display: flex; gap: .75rem; align-items: center; }
+      .muted { opacity: .75; font-size: .95rem; }
+      .result-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-top: .75rem;
+      }
+      .num { font-size: 1.25rem; font-weight: 700; }
+      .inline-help {
+        display: block; font-size: .85rem; opacity: .8; margin-top: .25rem;
+      }
+      fieldset.inline {
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 10px; padding: .5rem .75rem;
+      }
+      fieldset.inline legend { padding: 0 .25rem; font-size: .9rem; }
+      .status {
+        margin: .75rem 0; font-size: .95rem;
+      }
+      .status[hidden] { display: none; }
+      .error { color: #c0392b; }
+      .ok { color: #2e7d32; }
+      .visually-hidden {
+        position: absolute !important; height: 1px; width: 1px;
+        overflow: hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap;
+      }
+      .btn[disabled] { opacity: .6; cursor: not-allowed; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container nav">
+        <a class="brand" href="index.html" aria-label="Back to home">
+          <span class="brand-badge" aria-hidden="true">💻</span>
+          <span>Juan Rizo</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="container" style="padding:2rem 0">
+      <h1>Calculator Demos</h1>
+      <p>Interact with my C++/WASM demo and a BMR calculator backed by compiled C++.</p>
+
+      <!-- Compiled C++/WASM demo (your existing Emscripten app) -->
+      <section style="margin-bottom:2rem">
+        <h2 id="wasm-app">Weight Loss Calculator (C++ compiled with Emscripten)</h2>
+        <p class="muted">This is the original app compiled to WebAssembly.</p>
+        <iframe
+          src="demo/weightloss.html"
+          class="demo-frame"
+          title="Weight Loss Calculator"
+          loading="lazy"
+          tabindex="0"
+        ></iframe>
+      </section>
+
+      <!-- BMR Calculator: inputs in HTML, math in C++ WASM -->
+      <section aria-labelledby="bmr-title">
+        <h2 id="bmr-title">BMR &amp; TDEE Calculator (C++/WASM)</h2>
+
+        <form id="bmr-form" class="calc-form" novalidate>
+          <fieldset class="inline" aria-describedby="units-help">
+            <legend>Units</legend>
+            <label>
+              <input type="radio" name="units" value="metric" checked />
+              Metric (kg, cm)
+            </label>
+            <label style="margin-left:1rem">
+              <input type="radio" name="units" value="imperial" />
+              Imperial (lb, in)
+            </label>
+            <span id="units-help" class="inline-help">
+              Switch units — values will be interpreted and converted automatically.
+            </span>
+          </fieldset>
+
+          <div class="calc-grid" style="margin-top: .75rem">
+            <label>
+              <span>Sex</span>
+              <select name="sex" required aria-required="true">
+                <option value="">Select…</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+              <span class="inline-help">Used by Mifflin–St Jeor equation.</span>
+            </label>
+
+            <label>
+              <span>Age</span>
+              <input type="number" name="age" min="10" max="100" placeholder="20" required />
+              <span class="inline-help">Years (10–100)</span>
+            </label>
+
+            <label data-field="height">
+              <span>Height (<span data-unit="height">cm</span>)</span>
+              <input type="number" name="height" min="120" max="230" placeholder="175" required />
+              <span class="inline-help">Range updates with units.</span>
+            </label>
+
+            <label data-field="weight">
+              <span>Weight (<span data-unit="weight">kg</span>)</span>
+              <input type="number" name="weight" min="35" max="200" step="0.1" placeholder="70" required />
+              <span class="inline-help">Range updates with units.</span>
+            </label>
+
+            <label>
+              <span>Activity</span>
+              <select name="activity" required>
+                <option value="">Select…</option>
+                <option value="1.2">Sedentary (little/no exercise)</option>
+                <option value="1.375">Light (1–3 days/week)</option>
+                <option value="1.55">Moderate (3–5 days/week)</option>
+                <option value="1.725">Very active (6–7 days/week)</option>
+                <option value="1.9">Extra active (physical job/2x day)</option>
+              </select>
+              <span class="inline-help">Multiplier for daily energy expenditure.</span>
+            </label>
+          </div>
+
+          <div class="row" style="margin-top:.75rem">
+            <button class="btn" type="submit" id="calcBtn">Calculate</button>
+            <button class="btn" type="reset">Reset</button>
+            <span id="status" class="status muted" role="status" hidden>Loading…</span>
+          </div>
+        </form>
+
+        <div id="bmr-output" class="calc-output" aria-live="polite"></div>
+        <p class="muted" style="margin-top:.5rem">
+          Computed via WebAssembly using the Mifflin–St Jeor equation (BMR), multiplied by activity factor (TDEE).
+        </p>
+      </section>
+
+      <p style="margin-top:2rem">
+        <a class="btn" href="index.html">← Back to Portfolio</a>
+      </p>
+    </main>
+
+    <footer>
+      <div class="container row" style="justify-content: space-between">
+        <span>© <span id="year"></span> Juan Rizo</span>
+        <a href="index.html" class="btn">Home</a>
+      </div>
+    </footer>
+
+    <!-- Load the C++/WASM module that you built as demo/bmr.js -->
+    <script type="module">
+      import createModule from './demo/bmr.js';
+
+      const $ = (sel, root=document) => root.querySelector(sel);
+      const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+      const fmt0 = (n) => Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+      const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+      const form = document.getElementById('bmr-form');
+      const out  = document.getElementById('bmr-output');
+      const statusEl = document.getElementById('status');
+      const calcBtn = document.getElementById('calcBtn');
+      const unitLabels = {
+        height: $('[data-unit="height"]'),
+        weight: $('[data-unit="weight"]')
+      };
+
+      // Unit conversions
+      const lbToKg = (lb) => lb * 0.45359237;
+      const inToCm = (inch) => inch * 2.54;
+
+      // Update input ranges/labels on unit toggle
+      const applyUnitUI = (units) => {
+        unitLabels.height.textContent = (units === 'metric') ? 'cm' : 'in';
+        unitLabels.weight.textContent = (units === 'metric') ? 'kg' : 'lb';
+
+        const hInput = form.elements.height;
+        const wInput = form.elements.weight;
+
+        if (units === 'metric') {
+          hInput.min = 120; hInput.max = 230; hInput.step = 1; hInput.placeholder = 175;
+          wInput.min = 35;  wInput.max = 200; wInput.step = 0.1; wInput.placeholder = 70;
+        } else {
+          hInput.min = 47;  hInput.max = 90;  hInput.step = 0.5; hInput.placeholder = 69;
+          wInput.min = 77;  wInput.max = 440; wInput.step = 0.5; wInput.placeholder = 154;
+        }
+      };
+
+      // Init UI
+      applyUnitUI('metric');
+      $$('input[name="units"]').forEach(r =>
+        r.addEventListener('change', () => applyUnitUI(r.value))
+      );
+
+      // Year fallback (if script.js doesn’t set it)
+      const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear();
+
+      // Load WASM with UX state
+      let Module = null;
+      (async () => {
+        try {
+          statusEl.hidden = false;
+          statusEl.textContent = 'Loading WebAssembly…';
+          calcBtn.disabled = true;
+
+          Module = await createModule(); // initializes WebAssembly
+
+          // Wrap C++ functions
+          window.__calcBMR = Module.cwrap('calc_bmr', 'number', ['number','number','number','number']);
+          window.__calcTDEE = Module.cwrap('calc_tdee', 'number', ['number','number']);
+
+          statusEl.textContent = 'Ready!';
+          statusEl.classList.add('ok');
+        } catch (err) {
+          statusEl.hidden = false;
+          statusEl.textContent = 'Failed to load calculator. Please refresh or check console.';
+          statusEl.classList.add('error');
+          console.error(err);
+        } finally {
+          calcBtn.disabled = false;
+          setTimeout(() => { statusEl.hidden = true; }, 1500);
+        }
+      })();
+
+      // Validate and compute
+      const getNumber = (val) => {
+        const n = Number(val);
+        return Number.isFinite(n) ? n : NaN;
+      };
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        out.textContent = '';
+
+        if (!Module || !window.__calcBMR || !window.__calcTDEE) {
+          out.innerHTML = '<p class="error">Calculator is not ready. Try again in a moment.</p>';
+          return;
+        }
+
+        const data   = new FormData(form);
+        const units  = String(data.get('units') || 'metric');
+        const sexStr = String(data.get('sex') || '');
+        const age    = getNumber(data.get('age'));
+        let   height = getNumber(data.get('height'));
+        let   weight = getNumber(data.get('weight'));
+        const act    = getNumber(data.get('activity'));
+
+        // Basic checks
+        if (!sexStr || !Number.isFinite(age) || !Number.isFinite(height) || !Number.isFinite(weight) || !Number.isFinite(act)) {
+          out.innerHTML = '<p class="error">Please fill out all fields with valid numbers.</p>';
+          return;
+        }
+
+        // Convert to METRIC for C++ calls
+        if (units === 'imperial') {
+          height = inToCm(height);
+          weight = lbToKg(weight);
+        }
+
+        // Clamp sensible bounds in metric (silent guardrails)
+        height = clamp(height, 100, 250);
+        weight = clamp(weight, 30, 300);
+        const ageClamped = clamp(age, 10, 100);
+
+        const sex = (sexStr === 'male') ? 1 : 0;  // map to C++ int
+
+        try {
+          const bmr  = window.__calcBMR(sex, ageClamped, height, weight);
+          const tdee = window.__calcTDEE(bmr, act);
+
+          out.innerHTML = `
+            <div class="result-grid" role="group" aria-label="Results">
+              <div><strong>BMR</strong><div class="num">${fmt0(bmr)} kcal/day</div></div>
+              <div><strong>TDEE</strong><div class="num">${fmt0(tdee)} kcal/day</div></div>
+            </div>
+            <p class="muted">Inputs interpreted as ${units === 'metric' ? 'kg/cm' : 'lb/in'}; converted to metric internally.</p>
+          `;
+        } catch (err) {
+          console.error(err);
+          out.innerHTML = '<p class="error">An error occurred while calculating. Check console for details.</p>';
+        }
+      });
+
+      form.addEventListener('reset', () => { out.textContent = ''; });
+    </script>
+
+    <!-- Your general site JS (footer year, theme, etc.) -->
+    <script src="script.js" defer></script>
+  </body>
+</html>

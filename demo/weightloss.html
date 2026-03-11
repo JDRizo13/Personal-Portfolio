@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>weightloss.cpp — HTML</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --card: #111823;
+      --fg: #e6edf3;
+      --muted: #9fb0c0;
+      --accent: #72a7ff;
+      --border: #243142;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent);
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(6px);
+    }
+    h1 {
+      font-size: 18px;
+      margin: 0;
+      letter-spacing: 0.3px;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: #0f1722;
+    }
+    .toolbar .name {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    button.copy {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    button.copy:active {
+      transform: translateY(1px);
+    }
+    pre {
+      margin: 0;
+      padding: 18px;
+      overflow: auto;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.5;
+      tab-size: 2;
+      counter-reset: line;
+      white-space: pre;
+    }
+    /* Faux line numbers */
+    code {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+    }
+    code > span {
+      display: contents;
+    }
+    .ln::before {
+      counter-increment: line;
+      content: counter(line);
+      color: var(--muted);
+      text-align: right;
+      width: 3ch;
+      padding-right: 8px;
+    }
+    .tok-kw { color: #c792ea; }
+    .tok-ty { color: #82aaff; }
+    .tok-fn { color: #7fdbca; }
+    .tok-str { color: #ecc48d; }
+    .tok-co { color: #69758a; font-style: italic; }
+    .tok-op { color: #f78c6c; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>weightloss.cpp</h1>
+    <div class="meta">Rendered as HTML (download or open locally)</div>
+  </header>
+  <main>
+    <div class="card">
+      <div class="toolbar">
+        <div class="name">/mnt/data/weightloss.cpp</div>
+        <button class="copy" id="copyBtn" aria-label="Copy code">Copy</button>
+      </div>
+      <pre id="pre"><code id="code">#include &lt;iostream&gt; 
+#include &lt;iomanip&gt; 
+#include &lt;string&gt; 
+
+using namespace std;
+
+void bmrMale();
+void bmrFemale();
+double getIdealCal();
+
+int actLevel, age;
+string name, idealUnit;
+char gender;
+double idealWeight, weightKg, weightLb, cal, bmr;
+
+
+int main()
+{
+    // Calculate users&#x27; basal metabolic rate (BMR) // 
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;Welcome to your weight loss calculator.\nWe will start by asking you to tell us your gender.\n&quot;;
+    cout &lt;&lt; &quot;We ask you for this because the calculation values vary depending your gender.\n&quot;;
+    cout &lt;&lt; &quot;Please type M or m for male, and F or f for female: &quot;;
+    cin &gt;&gt; gender;
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+
+
+    if (gender == &#x27;M&#x27; || gender == &#x27;m&#x27;)
+    {
+        bmrMale();
+    }
+    else if (gender == &#x27;F&#x27; || gender == &#x27;f&#x27;)
+    {
+        bmrFemale();
+    }
+    else
+    {
+        cout &lt;&lt; &quot;Unrecognized gender :(. Please try again&quot; &lt;&lt; endl;
+        exit(0);
+    }
+
+
+    // Calculate user&#x27;s daily calories need according to their movement during work and their exercise style // 
+    cout &lt;&lt; &quot;Now let&#x27;s look at how many calories do you burn one day. Here is a list of activity level: \n&quot;;
+    cout &lt;&lt; &quot;1. Sitting / lying all day \n&quot;;
+    cout &lt;&lt; &quot;2. Seated work and no exercise \n&quot;;
+    cout &lt;&lt; &quot;3. Seated work and light exercise \n&quot;;
+    cout &lt;&lt; &quot;4. Moderate physical work and no exercise \n&quot;;
+    cout &lt;&lt; &quot;5. Moderate physical work and light exercise \n&quot;;
+    cout &lt;&lt; &quot;6. Moderate physical work and heavy exercise \n&quot;;
+    cout &lt;&lt; &quot;7. Heavy physical work / heavy exercise \n&quot;;
+    cout &lt;&lt; &quot;8. Above average physical work / exercise \n&quot;;
+    cout &lt;&lt; &quot;Please type the number of your activity level: &quot;;
+    cin &gt;&gt; actLevel;
+
+    if (actLevel == 1)
+    {
+        cal = bmr * 1.2;
+        cout &lt;&lt; endl;
+    }
+    else if (actLevel == 2)
+    {
+        cal = bmr * 1.3;
+        cout &lt;&lt; endl;
+    }
+    else if (actLevel == 3)
+    {
+        cal = bmr * 1.4;
+        cout &lt;&lt; endl;
+    }
+    else if (actLevel == 4)
+    {
+        cal = bmr * 1.5;
+        cout &lt;&lt; endl;
+    }
+    else if (actLevel == 5)
+    {
+        cal = bmr * 1.6;
+        cout &lt;&lt; endl;
+    }
+    else if (actLevel == 6)
+    {
+        cal = bmr * 1.7;
+        cout &lt;&lt; endl;
+    }
+    else if (actLevel == 7)
+    {
+        cal = bmr * 1.8;
+        cout &lt;&lt; endl;
+    }
+    else if (actLevel == 8)
+    {
+        cal = bmr * 2.2;
+        cout &lt;&lt; endl;
+    }
+    else
+    {
+        cout &lt;&lt; &quot;You entered an invalid number.&quot; &lt;&lt; endl;
+        exit(0);
+    }
+    cout &lt;&lt; name &lt;&lt; &quot;, you burn &quot; &lt;&lt; cal &lt;&lt; &quot; calories a day! &quot; &lt;&lt; endl;
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+
+
+    // Suggest users how many calories they should consume each day to achieve their ideal weight // 
+    double consumePerDay;
+    cout &lt;&lt; &quot;It&#x27;s time to see how many calories you should consume to lose weight and maintain a healthy body.\n&quot;;
+    cout &lt;&lt; &quot;What&#x27;s your ideal weight? Please type a number and its unit (lb or kg), separate them by space: &quot;;
+    cin &gt;&gt; idealWeight &gt;&gt; idealUnit;
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+
+    consumePerDay = getIdealCal();
+    cout &lt;&lt; &quot;*To achieve your ideal weight, you should consume &quot; &lt;&lt; consumePerDay &lt;&lt; &quot; calories per day*. \n&quot;;
+
+    //Suggest user how to divide their calories through macros 
+    double protein;
+    double carbohydrates;
+    double fats;
+
+    protein = consumePerDay * 0.5 / 4;
+    carbohydrates = consumePerDay * 0.35 / 4;
+    fats = consumePerDay * 0.15 / 9;
+
+    cout &lt;&lt; fixed &lt;&lt; showpoint &lt;&lt; setprecision(2);
+    cout &lt;&lt; &quot;\nConsidering how many calories you need to consume to achive your ideal weight, you should consume: \n&quot; &lt;&lt; &quot;1.-&quot; &lt;&lt; protein &lt;&lt; &quot; grams of protein. \n&quot; &lt;&lt; &quot;2.-&quot; &lt;&lt; carbohydrates &lt;&lt; &quot; grams of carbohydrates. \n&quot; &lt;&lt; &quot;3.-&quot; &lt;&lt; fats &lt;&lt; &quot; grams of fats. \n&quot;;
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;Some suggestions:&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;\n-Protein intake: lean proteins(protein that is low in saturated fat).&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;some examples of lean proteins are: eggs, beef, salmon, turkey, chicken breast.&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;-Carbohydrates intake: high fiber or complex carbohydrates. Some examples of high&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;fiber carbs are: quinoa, lentils, oats, kidney beans, whole wheat pasta, chickpea, wheat bran.&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;-Fats intake: monounsaturated and polyunsaturated. Some examples: Olive, peanut, and canola oils,&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;avocados, almonds, hazlenuts, peacans, pumpkin seedsand sesame seeds.&quot; &lt;&lt; endl;
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+
+    //Weekly average of weight loss 
+    double dailyCalDeficit;
+    dailyCalDeficit = cal - consumePerDay;
+
+    double weeklyCalDeficit;
+    weeklyCalDeficit = dailyCalDeficit * 7;
+
+    double weeklyWeightloss{};
+    if (idealUnit == &quot;lb&quot; || idealUnit == &quot;LB&quot;) 
+    {
+        weeklyWeightloss = weeklyCalDeficit / 3500;
+        cout &lt;&lt; &quot;1.- With your calorie intake of &quot; &lt;&lt; consumePerDay &lt;&lt; &quot; you will be lossing an average of &quot; &lt;&lt; weeklyWeightloss &lt;&lt; &quot; lbs per week.&quot; &lt;&lt; endl;
+    }
+    else if (idealUnit == &quot;kg&quot; || idealUnit == &quot;KG&quot;) 
+    {
+        weeklyWeightloss = (weeklyCalDeficit / 3500) / 2.2;
+        cout &lt;&lt; &quot;1.- With your calorie intake of &quot; &lt;&lt; consumePerDay &lt;&lt; &quot; you will be lossing an average of &quot; &lt;&lt; weeklyWeightloss &lt;&lt; &quot; kg per week.&quot; &lt;&lt; endl;
+    }
+    else
+    {
+        cout &lt;&lt; &quot;Unrecognized unit. Please retry.&quot; &lt;&lt; endl;
+        exit(0);
+    }
+
+    //monthly average of weight loss 
+    double monthlyWeightloss;
+    if (idealUnit == &quot;lb&quot; || idealUnit == &quot;LB&quot;)
+    {
+        monthlyWeightloss = weeklyWeightloss * 4;
+        cout &lt;&lt; &quot;2.- Your monthly average weight loss : &quot; &lt;&lt; monthlyWeightloss &lt;&lt; &quot; lbs monthly.&quot; &lt;&lt; endl;
+    }
+    else if (idealUnit == &quot;kg&quot; || idealUnit == &quot;KG&quot;)
+    {
+        monthlyWeightloss = (weeklyWeightloss * 4.0) / 2.2;
+        cout &lt;&lt; &quot;2.- Your monthly average weight loss: &quot; &lt;&lt; monthlyWeightloss &lt;&lt; &quot; kgs monthly.&quot; &lt;&lt; endl;
+    }
+    else
+    {
+        cout &lt;&lt; &quot;Unrecognized unit. Please retry.&quot; &lt;&lt; endl;
+        exit(0);
+    }
+
+    cout &lt;&lt; &quot;\nYou are able to have cheat days!!!During your cheat day consume an additional 300 calories per day.&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;Your macros, which consisting of protein, carbohydrates, and fats can be altered during this day, you won&#x27;t have to follow the suggested given.&quot; &lt;&lt; endl;
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+
+    return 0;
+}
+
+//Funtions:
+// 
+//Male Funtion
+void bmrMale()
+{
+    string unit;
+    string gnr = &quot;Male&quot;;
+
+    cout &lt;&lt; &quot;Hello!, you selected &quot; &lt;&lt; gnr &lt;&lt; &quot; bmr calculation, our mission is help you so let&#x27;s start working&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;Please type your name: &quot;;
+    cin &gt;&gt; name;
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+
+    cout &lt;&lt; &quot;Hi, &quot; &lt;&lt; name &lt;&lt; &quot;! It&#x27;s nice to have you here, ready for a change?\n&quot;;
+    cout &lt;&lt; &quot;our principal mission is to help you, never forget that you are capable of everything!\n&quot;;
+    cout &lt;&lt; &quot;we will work as you like, so for your convenience tell us if you want to use imperial or metric units.\n&quot;;
+    cout &lt;&lt; &quot;Please type imperial or metric as you want: &quot;;
+    cin &gt;&gt; unit;
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+
+    if (unit == &quot;metric&quot; || unit == &quot;Metric&quot;)
+    {
+        double convM, mtrs;
+        string exercise;
+
+        cout &lt;&lt; &quot;You selected metric units&quot; &lt;&lt; endl;
+        cout &lt;&lt; &quot;1.- First enter your age: &quot;;
+        cin &gt;&gt; age;
+        cout &lt;&lt; &quot;2.- Now enter your weight in kilograms: &quot;;
+        cin &gt;&gt; weightKg;
+        cout &lt;&lt; &quot;3.- Convert your height from meters to centimeters: &quot;;
+        cin &gt;&gt; mtrs;
+        convM = mtrs * 100;
+        cout &lt;&lt; &quot;4.- Your height in centimeters is: &quot; &lt;&lt; convM &lt;&lt; endl;
+        bmr = (10 * weightKg) + (6.25 * convM) - (5 * age) + 5;
+        cout &lt;&lt; &quot;Your BMR is: &quot; &lt;&lt; bmr &lt;&lt; endl;
+        cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+    }
+    //Imperial
+    else if (unit == &quot;imperial&quot; || unit == &quot;Imperial&quot;)
+    {
+
+        double conv, foot;
+        string exercise;
+
+        cout &lt;&lt; &quot;You Selected imperial units&quot; &lt;&lt; endl;
+        cout &lt;&lt; &quot;1.- First enter your age: &quot;;
+        cin &gt;&gt; age;
+        cout &lt;&lt; &quot;2.- Please enter your weight in pound: &quot;;
+        cin &gt;&gt; weightLb;
+        cout &lt;&lt; &quot;3.- Let&#x27;s convert your height from foot to inches: &quot;;
+        cin &gt;&gt; foot;
+        conv = foot * 12;
+        cout &lt;&lt; &quot;4.- Your height in inches is: &quot; &lt;&lt; conv &lt;&lt; endl;
+        bmr = (10 * (weightLb / 2.2)) + (6.25 * (2.54 * conv)) - (5 * age) + 5;
+        cout &lt;&lt; &quot;Your BMR is: &quot; &lt;&lt; bmr &lt;&lt; endl;
+        cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+    }
+    else
+    {
+        cout &lt;&lt; &quot;Unrecognized unit. Please retry.&quot; &lt;&lt; endl;
+        exit(0);
+    }
+
+}
+
+
+//Female Funtion
+void bmrFemale()
+{
+    string unit;
+    string gnr = &quot;Female&quot;;
+
+    cout &lt;&lt; &quot;Hello!, you selected &quot; &lt;&lt; gnr &lt;&lt; &quot; bmr calculation, we&#x27;re here to help you lose weight and motivate yourself&quot; &lt;&lt; endl;
+    cout &lt;&lt; &quot;Let&#x27;s start, please type your name: &quot;;
+    cin &gt;&gt; name;
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+
+    cout &lt;&lt; &quot;Hi &quot; &lt;&lt; name &lt;&lt; &quot;! It&#x27;s nice to meet you, ready for a change?\n&quot;;
+    cout &lt;&lt; &quot;our principal mission is to help you, never forget that you are capable of everything!\n&quot;;
+    cout &lt;&lt; &quot;we will work as you like, so for your convenience tell us if you want to use imperial or metric units.\n&quot;;
+    cout &lt;&lt; &quot;So please type imperial or metric: &quot;;
+    cin &gt;&gt; unit;
+    cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+
+    if (unit == &quot;metric&quot; || unit == &quot;Metric&quot;)
+    {
+        double mtrs, convM;
+        string exercise;
+
+        cout &lt;&lt; &quot;You selected metric units&quot; &lt;&lt; endl;
+        cout &lt;&lt; &quot;1.- First enter your age: &quot;;
+        cin &gt;&gt; age;
+        cout &lt;&lt; &quot;2.- Please enter your weight in kilogram: &quot;;
+        cin &gt;&gt; weightKg;
+        cout &lt;&lt; &quot;3.- Convert your height from meters to centimeters: &quot;;
+        cin &gt;&gt; mtrs;
+        convM = mtrs * 100;
+        cout &lt;&lt; &quot;4.- Your height in centimeters is: &quot; &lt;&lt; convM &lt;&lt; endl;
+
+        bmr = (10 * weightKg) + (6.25 * convM) - (5 * age) - 161;
+        cout &lt;&lt; &quot;Your BMR is: &quot; &lt;&lt; bmr &lt;&lt; endl;
+        cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+    }
+    //Imperial
+    else if (unit == &quot;imperial&quot; || unit == &quot;Imperial&quot;)
+    {
+        double conv, foot;
+        string exercise;
+
+        cout &lt;&lt; &quot;You selected imperial units&quot; &lt;&lt; endl;
+        cout &lt;&lt; &quot;1.- First enter your age: &quot;;
+        cin &gt;&gt; age;
+        cout &lt;&lt; &quot;2.- Please enter your weight in pound: &quot;;
+        cin &gt;&gt; weightLb;
+        cout &lt;&lt; &quot;3.- Convert your height from foot to inches: &quot;;
+        cin &gt;&gt; foot;
+        conv = foot * 12;
+        cout &lt;&lt; &quot;4.- Your height in inches is: &quot; &lt;&lt; conv &lt;&lt; endl;
+        bmr = (10 * (weightLb / 2.2)) + (6.25 * (2.54 * conv)) - (5 * age) - 161;
+        cout &lt;&lt; &quot;Your BMR is: &quot; &lt;&lt; bmr &lt;&lt; endl;
+        cout &lt;&lt; setfill(&#x27;-&#x27;) &lt;&lt; setw(55) &lt;&lt; &quot;&quot; &lt;&lt; endl;
+
+    }
+    else
+    {
+        cout &lt;&lt; &quot;Unrecognized unit. Please retry.&quot; &lt;&lt; endl;
+        exit(0);
+    }
+}
+
+
+double getIdealCal()
+{
+    if (gender == &#x27;M&#x27; || gender == &#x27;m&#x27;)
+    {
+        double consumeCalM = 0;
+
+        if (idealUnit == &quot;lb&quot; || idealUnit == &quot;LB&quot;)
+            consumeCalM = idealWeight * 12;
+
+        if (idealUnit == &quot;kg&quot; || idealUnit == &quot;KG&quot;)
+            consumeCalM = idealWeight * 2.2 * 12;
+
+        return consumeCalM;
+    }
+    else if (gender == &#x27;F&#x27; || gender == &#x27;f&#x27;)
+    {
+        double consumeCalF = 0;
+
+        if (idealUnit == &quot;lb&quot; || idealUnit == &quot;LB&quot;)
+            consumeCalF = idealWeight * 11;
+
+        if (idealUnit == &quot;kg&quot; || idealUnit == &quot;KG&quot;)
+            consumeCalF = idealWeight * 2.2 * 11;
+
+        return consumeCalF;
+    }
+    else
+        cout &lt;&lt; &quot;Unable to calculate. Please retry.&quot; &lt;&lt; endl;
+    exit(0);
+}
+
+#ifdef __EMSCRIPTEN__
+  #include &lt;emscripten/emscripten.h&gt;
+#else
+  #ifndef EMSCRIPTEN_KEEPALIVE
+    #define EMSCRIPTEN_KEEPALIVE
+  #endif
+#endif
+
+extern &quot;C&quot; {
+
+// sex: 1 = male, 0 = female
+EMSCRIPTEN_KEEPALIVE
+double calc_bmr(int sex, double age, double height_cm, double weight_kg) {
+  const double s = (sex == 1) ? 5.0 : -161.0;
+  return (10.0 * weight_kg) + (6.25 * height_cm) - (5.0 * age) + s;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double calc_tdee(double bmr, double activity_factor) {
+  return bmr * activity_factor;
+}
+
+} // extern &quot;C&quot;</code></pre>
+    </div>
+  </main>
+  <script>
+    // Add simple line numbers by wrapping each line
+    const codeEl = document.getElementById('code');
+    const lines = codeEl.textContent.split('\n');
+    codeEl.innerHTML = lines.map(l => `<span><span class="ln"></span><span>${l.replace(/\s/g,'&nbsp;')}</span></span>`).join('\n');
+
+    // Copy to clipboard
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      const txt = lines.join('\n');
+      try {
+        await navigator.clipboard.writeText(txt);
+        const btn = document.getElementById('copyBtn');
+        const old = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = old, 1200);
+      } catch (e) {
+        alert('Copy failed: ' + e);
+      }
+    });
+  </script>
+</body>
+</html>
