@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Notes — Juan Rizo</title>
+  <meta name="robots" content="noindex" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ====== Notes App Layout ====== */
+    body { overflow: hidden; height: 100dvh; display: flex; flex-direction: column; }
+    main { flex: 1; overflow: hidden; display: flex; }
+
+    /* ====== Auth Screen ====== */
+    #auth-screen {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 2rem;
+    }
+    .auth-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+      padding: 2.5rem; width: min(420px, 100%);
+    }
+    .auth-logo {
+      width: 48px; height: 48px; border-radius: var(--radius);
+      background: var(--accent-grad); display: grid; place-items: center;
+      font-family: 'JetBrains Mono', monospace; font-size: .9rem;
+      font-weight: 700; color: #fff; margin-bottom: 1.5rem;
+    }
+    .auth-card h2 { margin-bottom: .3rem; }
+    .auth-card > p { font-size: .9rem; margin-bottom: 1.5rem; }
+    .auth-form { display: flex; flex-direction: column; gap: .75rem; }
+    .auth-form input { font-size: .9rem; }
+    .auth-note {
+      font-size: .78rem; color: var(--muted-2);
+      margin-top: .5rem; display: flex; gap: .4rem; align-items: flex-start;
+    }
+    .auth-note svg { flex-shrink: 0; margin-top: 1px; }
+    #auth-error { font-size: .85rem; color: #ef4444; margin: 0; min-height: 1.2em; }
+
+    /* ====== Notes App ====== */
+    #notes-app { flex: 1; display: none; overflow: hidden; }
+    #notes-app.active { display: flex; }
+
+    /* Sidebar */
+    .notes-sidebar {
+      width: 280px; flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: var(--bg-alt);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .sidebar-header {
+      padding: 1rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: .5rem; flex-shrink: 0;
+    }
+    .sidebar-header h3 { flex: 1; margin: 0; font-size: .95rem; }
+    #btn-new-note {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .4rem .7rem; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--card);
+      font-size: .8rem; font-weight: 600; cursor: pointer;
+      color: var(--accent); font-family: inherit;
+      transition: background .15s, box-shadow .15s;
+    }
+    #btn-new-note:hover { background: var(--accent-weak); box-shadow: var(--shadow-xs); }
+
+    .sidebar-search {
+      padding: .6rem .75rem; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .sidebar-search input {
+      width: 100%; padding: .4rem .65rem; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--bg);
+      font-size: .82rem; color: var(--fg);
+    }
+    .sidebar-search input:focus { outline: none; border-color: var(--accent); }
+
+    #notes-list {
+      flex: 1; overflow-y: auto; padding: .5rem;
+    }
+    .day-group { margin-bottom: .25rem; }
+    .day-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted-2);
+      padding: .6rem .5rem .3rem; user-select: none;
+    }
+    .note-item {
+      padding: .6rem .75rem; border-radius: var(--radius-sm);
+      cursor: pointer; border: 1px solid transparent;
+      transition: background .12s, border-color .12s;
+      margin-bottom: 2px;
+    }
+    .note-item:hover { background: var(--card); border-color: var(--border); }
+    .note-item.active { background: var(--accent-weak); border-color: color-mix(in srgb, var(--accent) 25%, transparent); }
+    .note-item-title {
+      font-size: .875rem; font-weight: 600; color: var(--fg);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: .1rem;
+    }
+    .note-item-preview {
+      font-size: .75rem; color: var(--muted-2);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .notes-empty {
+      text-align: center; padding: 2rem 1rem; font-size: .85rem; color: var(--muted-2);
+    }
+
+    /* Sidebar user bar */
+    .sidebar-user {
+      padding: .65rem .75rem; border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: .5rem; flex-shrink: 0;
+    }
+    .user-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent-grad); display: grid; place-items: center;
+      font-size: .65rem; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .user-email { font-size: .75rem; color: var(--muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #btn-signout {
+      font-size: .7rem; color: var(--muted-2); background: none;
+      border: none; cursor: pointer; padding: .2rem .4rem;
+      border-radius: 4px; font-family: inherit;
+    }
+    #btn-signout:hover { color: #ef4444; }
+
+    /* Editor Panel */
+    .editor-panel {
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
+      background: var(--bg);
+    }
+    .editor-topbar {
+      padding: .6rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: .5rem; flex-shrink: 0;
+      background: var(--bg-alt);
+    }
+    .editor-topbar-left { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; flex: 1; }
+
+    /* Toolbar */
+    .tb-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 30px; height: 28px; padding: 0 .5rem;
+      border-radius: 6px; border: none; background: none;
+      font-size: .8rem; font-weight: 700; cursor: pointer;
+      color: var(--muted); font-family: 'JetBrains Mono', monospace;
+      transition: background .1s, color .1s;
+    }
+    .tb-btn:hover { background: var(--accent-weak); color: var(--fg); }
+    .tb-btn.active { background: var(--accent-weak); color: var(--accent); }
+    .tb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 .15rem; flex-shrink: 0; }
+    .tb-btn svg { width: 14px; height: 14px; }
+
+    /* Delete btn */
+    #btn-delete-note {
+      padding: .35rem .65rem; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--card);
+      font-size: .75rem; font-weight: 600; cursor: pointer; color: var(--muted);
+      font-family: inherit; display: flex; align-items: center; gap: .35rem;
+      transition: border-color .12s, color .12s;
+    }
+    #btn-delete-note:hover { border-color: #ef4444; color: #ef4444; }
+
+    /* Title + Content */
+    .editor-body { flex: 1; overflow-y: auto; padding: 1.5rem 2rem 3rem; }
+    #note-title {
+      width: 100%; border: none; background: none; outline: none;
+      font-size: 1.5rem; font-weight: 700; color: var(--fg);
+      font-family: 'Inter', sans-serif; margin-bottom: 1rem;
+      padding: 0; line-height: 1.3; letter-spacing: -.02em;
+    }
+    #note-title::placeholder { color: var(--border); }
+
+    #note-content {
+      min-height: 400px; outline: none; font-size: .95rem;
+      line-height: 1.75; color: var(--fg); font-family: 'Inter', sans-serif;
+    }
+    #note-content:empty::before {
+      content: 'Start writing your note…';
+      color: var(--muted-2); pointer-events: none;
+    }
+    #note-content h1 { font-size: 1.4rem; margin: 1.25rem 0 .5rem; }
+    #note-content h2 { font-size: 1.15rem; margin: 1rem 0 .4rem; }
+    #note-content h3 { font-size: 1rem; margin: .75rem 0 .3rem; }
+    #note-content ul, #note-content ol { padding-left: 1.5rem; margin: .4rem 0; }
+    #note-content li { margin-bottom: .2rem; }
+    #note-content b, #note-content strong { font-weight: 700; }
+    #note-content i, #note-content em { font-style: italic; }
+    #note-content u { text-decoration: underline; }
+    #note-content hr { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+    #note-content table {
+      border-collapse: collapse; width: 100%; margin: .75rem 0; font-size: .9rem;
+    }
+    #note-content th, #note-content td {
+      border: 1px solid var(--border); padding: .45rem .75rem; text-align: left;
+    }
+    #note-content th {
+      background: color-mix(in srgb, var(--accent-weak) 60%, transparent);
+      font-weight: 700; font-size: .82rem; color: var(--fg);
+    }
+    #note-content code {
+      font-family: 'JetBrains Mono', monospace; font-size: .85em;
+      background: color-mix(in srgb, var(--accent-weak) 50%, transparent);
+      padding: .1em .35em; border-radius: 4px; color: var(--accent);
+    }
+    #note-content blockquote {
+      border-left: 3px solid var(--accent); margin: .75rem 0;
+      padding-left: 1rem; color: var(--muted); font-style: italic;
+    }
+    #note-content a { color: var(--accent); text-decoration: underline; }
+
+    /* Empty state editor */
+    .editor-empty {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: .75rem;
+      color: var(--muted-2); text-align: center; padding: 2rem;
+    }
+    .editor-empty svg { opacity: .3; }
+    .editor-empty p { font-size: .9rem; margin: 0; }
+
+    /* Autosave indicator */
+    #save-indicator {
+      font-size: .72rem; color: var(--muted-2);
+      font-family: 'JetBrains Mono', monospace;
+      min-width: 4ch; transition: opacity .3s;
+    }
+
+    /* Table picker modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; opacity: 0; pointer-events: none;
+      transition: opacity .15s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+      padding: 1.5rem; width: min(360px, 90vw);
+    }
+    .modal h4 { margin: 0 0 1rem; font-size: .95rem; }
+    .table-picker-grid { display: grid; grid-template-columns: repeat(6,24px); gap: 3px; margin-bottom: 1rem; }
+    .tp-cell {
+      width: 24px; height: 24px; border: 1px solid var(--border);
+      border-radius: 3px; cursor: pointer; transition: background .1s;
+    }
+    .tp-cell.hover { background: var(--accent); border-color: var(--accent); }
+    .tp-label { font-size: .8rem; color: var(--muted); margin-bottom: .75rem; }
+    .modal-actions { display: flex; gap: .5rem; justify-content: flex-end; }
+
+    /* Responsive */
+    @media (max-width: 660px) {
+      .notes-sidebar { width: 220px; }
+      .editor-body { padding: 1rem; }
+    }
+    @media (max-width: 500px) {
+      .notes-sidebar { display: none; }
+      #notes-app.sidebar-open .notes-sidebar { display: flex; position: fixed; inset: 64px 0 0 0; width: 100%; z-index: 50; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ====== Header ====== -->
+  <header>
+    <div class="container nav">
+      <a class="brand" href="index.html" aria-label="Back to portfolio">
+        <div class="brand-initials" aria-hidden="true">JR</div>
+        <span>Juan Rizo</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#skills">Skills</a>
+        <a href="index.html#education">Education</a>
+        <a href="index.html#experience">Experience</a>
+        <a href="index.html#contact">Contact</a>
+        <a href="notes.html" style="color:var(--accent)">Notes</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="theme-toggle" class="btn btn-icon" type="button" aria-pressed="false" aria-label="Toggle theme" title="Toggle theme">
+          <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <label class="menu-btn" for="menu-toggle" aria-label="Open menu">&#9776;</label>
+        <input id="menu-toggle" type="checkbox" aria-hidden="true" />
+      </div>
+    </div>
+    <div class="container mobile-panel">
+      <div class="mobile-nav-grid">
+        <a class="btn" href="index.html#projects">Projects</a>
+        <a class="btn" href="index.html#skills">Skills</a>
+        <a class="btn" href="index.html#education">Education</a>
+        <a class="btn" href="index.html#experience">Experience</a>
+        <a class="btn" href="index.html#contact">Contact</a>
+        <a class="btn btn-primary" href="notes.html">Notes</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ====== Auth Screen ====== -->
+    <div id="auth-screen">
+      <div class="auth-card">
+        <div class="auth-logo">N/</div>
+        <h2>Your Notes</h2>
+        <p>Enter your email and a password to access or create your private notebook. Your notes are stored securely on this device.</p>
+        <form class="auth-form" id="auth-form" novalidate>
+          <label>
+            <span>Email</span>
+            <input type="email" id="auth-email" placeholder="you@example.com" required autocomplete="email" />
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" id="auth-password" placeholder="Your secret password" required autocomplete="current-password" minlength="4" />
+          </label>
+          <button class="btn btn-primary" type="submit" style="margin-top:.25rem">Open My Notebook →</button>
+          <p id="auth-error"></p>
+        </form>
+        <div class="auth-note">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Notes are private and stored only on this device. Your password is never sent anywhere — it's used to create a unique key for your notebook.
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Notes App ====== -->
+    <div id="notes-app">
+
+      <!-- Sidebar -->
+      <aside class="notes-sidebar">
+        <div class="sidebar-header">
+          <h3>Notebook</h3>
+          <button id="btn-new-note" title="New note">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New
+          </button>
+        </div>
+        <div class="sidebar-search">
+          <input type="text" id="search-input" placeholder="Search notes…" />
+        </div>
+        <div id="notes-list" role="list" aria-label="Your notes"></div>
+        <div class="sidebar-user">
+          <div class="user-avatar" id="user-avatar">?</div>
+          <span class="user-email" id="user-email-display"></span>
+          <button id="btn-signout" title="Sign out">Sign out</button>
+        </div>
+      </aside>
+
+      <!-- Editor Panel -->
+      <div class="editor-panel" id="editor-panel">
+
+        <!-- Empty state -->
+        <div class="editor-empty" id="editor-empty">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <p>Select a note or create a new one</p>
+        </div>
+
+        <!-- Editor (hidden until a note is selected) -->
+        <div id="editor-view" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+          <div class="editor-topbar">
+            <div class="editor-topbar-left" id="toolbar">
+              <!-- Bold -->
+              <button class="tb-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+              <!-- Italic -->
+              <button class="tb-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+              <!-- Underline -->
+              <button class="tb-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+              <div class="tb-sep"></div>
+              <!-- H1 -->
+              <button class="tb-btn" data-cmd="h1" title="Heading 1">H1</button>
+              <!-- H2 -->
+              <button class="tb-btn" data-cmd="h2" title="Heading 2">H2</button>
+              <!-- H3 -->
+              <button class="tb-btn" data-cmd="h3" title="Heading 3">H3</button>
+              <!-- Paragraph -->
+              <button class="tb-btn" data-cmd="p" title="Paragraph">¶</button>
+              <div class="tb-sep"></div>
+              <!-- Bullet list -->
+              <button class="tb-btn" data-cmd="ul" title="Bullet list">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>
+              </button>
+              <!-- Ordered list -->
+              <button class="tb-btn" data-cmd="ol" title="Numbered list">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+              </button>
+              <!-- Blockquote -->
+              <button class="tb-btn" data-cmd="quote" title="Blockquote">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+              </button>
+              <!-- Code -->
+              <button class="tb-btn" data-cmd="code" title="Inline code">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </button>
+              <div class="tb-sep"></div>
+              <!-- Table -->
+              <button class="tb-btn" data-cmd="table" title="Insert table">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+              </button>
+              <!-- Divider -->
+              <button class="tb-btn" data-cmd="hr" title="Horizontal rule">—</button>
+            </div>
+            <span id="save-indicator">saved</span>
+            <button id="btn-delete-note" title="Delete this note">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              Delete
+            </button>
+          </div>
+          <div class="editor-body">
+            <input type="text" id="note-title" placeholder="Untitled note" autocomplete="off" />
+            <div id="note-content" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" aria-label="Note content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Table picker modal -->
+  <div class="modal-overlay" id="table-modal" role="dialog" aria-modal="true" aria-label="Insert table">
+    <div class="modal">
+      <h4>Insert Table</h4>
+      <div class="table-picker-grid" id="table-picker"></div>
+      <p class="tp-label" id="tp-label">Hover to select size</p>
+      <div class="modal-actions">
+        <button class="btn" id="tp-cancel">Cancel</button>
+        <button class="btn btn-primary" id="tp-insert">Insert</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // ====== Theme ======
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = savedTheme === 'dark' || (savedTheme === null && prefersDark);
+    if (isDark) document.documentElement.classList.add('dark');
+    function updateThemeIcons(dark) {
+      document.getElementById('icon-sun').style.display = dark ? 'none' : '';
+      document.getElementById('icon-moon').style.display = dark ? '' : 'none';
+    }
+    updateThemeIcons(isDark);
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const dark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      updateThemeIcons(dark);
+    });
+
+    // Mobile menu close
+    document.querySelectorAll('.mobile-panel a').forEach(a =>
+      a.addEventListener('click', () => { document.getElementById('menu-toggle').checked = false; })
+    );
+
+    // ====== Crypto helpers ======
+    async function hashKey(email, password) {
+      const raw = email.trim().toLowerCase() + ':' + password;
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // ====== State ======
+    let currentKey = null;       // localStorage key for this user
+    let currentEmail = '';
+    let notes = [];              // array of note objects
+    let activeNoteId = null;
+    let saveTimer = null;
+    let tableRows = 3, tableCols = 3;
+
+    // ====== Note model ======
+    function makeId() { return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+    function today() { return new Date().toISOString().slice(0, 10); }
+    function loadNotes() {
+      try { notes = JSON.parse(localStorage.getItem(currentKey) || '[]'); } catch { notes = []; }
+    }
+    function saveNotes() { localStorage.setItem(currentKey, JSON.stringify(notes)); }
+    function getNoteById(id) { return notes.find(n => n.id === id); }
+
+    // ====== Session ======
+    async function tryAutoLogin() {
+      const stored = sessionStorage.getItem('jr_notes_session');
+      if (!stored) return false;
+      try {
+        const { key, email } = JSON.parse(stored);
+        currentKey = key; currentEmail = email;
+        loadNotes(); enterApp(); return true;
+      } catch { return false; }
+    }
+
+    // ====== Auth ======
+    document.getElementById('auth-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('auth-error');
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      if (!email || !password) { errEl.textContent = 'Please fill in both fields.'; return; }
+      if (password.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; return; }
+      errEl.textContent = '';
+      const btn = e.target.querySelector('button[type=submit]');
+      btn.disabled = true; btn.textContent = 'Opening…';
+      try {
+        const hash = await hashKey(email, password);
+        currentKey = 'jr_notes_' + hash;
+        currentEmail = email;
+        sessionStorage.setItem('jr_notes_session', JSON.stringify({ key: currentKey, email }));
+        loadNotes();
+        enterApp();
+      } catch { errEl.textContent = 'Something went wrong. Please try again.'; }
+      finally { btn.disabled = false; btn.textContent = 'Open My Notebook →'; }
+    });
+
+    function enterApp() {
+      document.getElementById('auth-screen').style.display = 'none';
+      const app = document.getElementById('notes-app');
+      app.classList.add('active');
+      // Set user display
+      const initials = currentEmail.slice(0, 2).toUpperCase();
+      document.getElementById('user-avatar').textContent = initials;
+      document.getElementById('user-email-display').textContent = currentEmail;
+      renderSidebar();
+      if (notes.length > 0) selectNote(notes[0].id);
+    }
+
+    document.getElementById('btn-signout').addEventListener('click', () => {
+      sessionStorage.removeItem('jr_notes_session');
+      currentKey = null; currentEmail = ''; notes = []; activeNoteId = null;
+      document.getElementById('notes-app').classList.remove('active');
+      document.getElementById('auth-screen').style.display = '';
+      document.getElementById('auth-email').value = '';
+      document.getElementById('auth-password').value = '';
+    });
+
+    // ====== Sidebar rendering ======
+    function renderSidebar(filterText = '') {
+      const list = document.getElementById('notes-list');
+      const query = filterText.toLowerCase().trim();
+      const filtered = query
+        ? notes.filter(n => n.title.toLowerCase().includes(query) || n.content.toLowerCase().includes(query))
+        : notes;
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="notes-empty">' + (query ? 'No results' : 'No notes yet.<br>Create your first one!') + '</div>';
+        return;
+      }
+
+      // Group by date (descending)
+      const groups = {};
+      filtered.forEach(n => {
+        if (!groups[n.date]) groups[n.date] = [];
+        groups[n.date].push(n);
+      });
+      const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+      list.innerHTML = '';
+      sortedDates.forEach(date => {
+        const group = document.createElement('div');
+        group.className = 'day-group';
+        const label = document.createElement('div');
+        label.className = 'day-label';
+        label.textContent = formatDate(date);
+        group.appendChild(label);
+
+        groups[date].forEach(note => {
+          const item = document.createElement('div');
+          item.className = 'note-item' + (note.id === activeNoteId ? ' active' : '');
+          item.setAttribute('role', 'listitem');
+          item.dataset.id = note.id;
+          const plain = stripHtml(note.content);
+          item.innerHTML = `
+            <div class="note-item-title">${escHtml(note.title || 'Untitled')}</div>
+            <div class="note-item-preview">${escHtml(plain.slice(0, 80))}</div>
+          `;
+          item.addEventListener('click', () => selectNote(note.id));
+          group.appendChild(item);
+        });
+        list.appendChild(group);
+      });
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso + 'T12:00:00');
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10);
+      const yestStr = new Date(now - 86400000).toISOString().slice(0, 10);
+      if (iso === todayStr) return 'Today';
+      if (iso === yestStr) return 'Yesterday';
+      return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function stripHtml(html) { const d = document.createElement('div'); d.innerHTML = html; return d.textContent || ''; }
+    function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // ====== Search ======
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      renderSidebar(e.target.value);
+    });
+
+    // ====== Note selection ======
+    function selectNote(id) {
+      const note = getNoteById(id);
+      if (!note) return;
+      activeNoteId = id;
+      renderSidebar(document.getElementById('search-input').value);
+      document.getElementById('editor-empty').style.display = 'none';
+      const view = document.getElementById('editor-view');
+      view.style.display = 'flex';
+      document.getElementById('note-title').value = note.title || '';
+      document.getElementById('note-content').innerHTML = note.content || '';
+      setSaveIndicator('saved');
+    }
+
+    // ====== New note ======
+    document.getElementById('btn-new-note').addEventListener('click', () => {
+      const note = { id: makeId(), title: '', content: '', date: today(), created: Date.now(), updated: Date.now() };
+      notes.unshift(note);
+      saveNotes();
+      renderSidebar();
+      selectNote(note.id);
+      setTimeout(() => document.getElementById('note-title').focus(), 50);
+    });
+
+    // ====== Auto-save ======
+    function scheduleSave() {
+      setSaveIndicator('…');
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(persistActive, 800);
+    }
+
+    function persistActive() {
+      if (!activeNoteId) return;
+      const note = getNoteById(activeNoteId);
+      if (!note) return;
+      note.title = document.getElementById('note-title').value || '';
+      note.content = document.getElementById('note-content').innerHTML;
+      note.updated = Date.now();
+      saveNotes();
+      renderSidebar(document.getElementById('search-input').value);
+      setSaveIndicator('saved');
+    }
+
+    function setSaveIndicator(text) {
+      document.getElementById('save-indicator').textContent = text;
+    }
+
+    document.getElementById('note-title').addEventListener('input', scheduleSave);
+    document.getElementById('note-content').addEventListener('input', scheduleSave);
+
+    // ====== Delete ======
+    document.getElementById('btn-delete-note').addEventListener('click', () => {
+      if (!activeNoteId) return;
+      const note = getNoteById(activeNoteId);
+      const title = note?.title || 'Untitled';
+      if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+      notes = notes.filter(n => n.id !== activeNoteId);
+      saveNotes();
+      activeNoteId = null;
+      document.getElementById('editor-view').style.display = 'none';
+      document.getElementById('editor-empty').style.display = '';
+      renderSidebar();
+    });
+
+    // ====== Toolbar ======
+    document.getElementById('toolbar').addEventListener('mousedown', (e) => {
+      const btn = e.target.closest('[data-cmd]');
+      if (!btn) return;
+      e.preventDefault(); // keep focus in editor
+      const cmd = btn.dataset.cmd;
+      const editor = document.getElementById('note-content');
+      editor.focus();
+
+      switch (cmd) {
+        case 'bold':      document.execCommand('bold', false); break;
+        case 'italic':    document.execCommand('italic', false); break;
+        case 'underline': document.execCommand('underline', false); break;
+        case 'h1': document.execCommand('formatBlock', false, '<h1>'); break;
+        case 'h2': document.execCommand('formatBlock', false, '<h2>'); break;
+        case 'h3': document.execCommand('formatBlock', false, '<h3>'); break;
+        case 'p':  document.execCommand('formatBlock', false, '<p>'); break;
+        case 'ul': document.execCommand('insertUnorderedList', false); break;
+        case 'ol': document.execCommand('insertOrderedList', false); break;
+        case 'quote': document.execCommand('formatBlock', false, '<blockquote>'); break;
+        case 'code': wrapSelection('code'); break;
+        case 'hr':
+          document.execCommand('insertHTML', false, '<hr/>');
+          break;
+        case 'table':
+          openTableModal();
+          break;
+      }
+      scheduleSave();
+    });
+
+    function wrapSelection(tag) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      const el = document.createElement(tag);
+      try { range.surroundContents(el); } catch { el.appendChild(range.extractContents()); range.insertNode(el); }
+    }
+
+    // ====== Table Modal ======
+    const tableModal = document.getElementById('table-modal');
+    const picker = document.getElementById('table-picker');
+    const tpLabel = document.getElementById('tp-label');
+    let selRows = 3, selCols = 3;
+
+    function openTableModal() {
+      selRows = 3; selCols = 3;
+      buildPicker();
+      tableModal.classList.add('open');
+    }
+    function buildPicker() {
+      picker.innerHTML = '';
+      for (let r = 1; r <= 6; r++) {
+        for (let c = 1; c <= 6; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'tp-cell' + (r <= selRows && c <= selCols ? ' hover' : '');
+          cell.dataset.r = r; cell.dataset.c = c;
+          cell.addEventListener('mouseenter', () => {
+            selRows = r; selCols = c;
+            picker.querySelectorAll('.tp-cell').forEach(el => {
+              const er = +el.dataset.r, ec = +el.dataset.c;
+              el.classList.toggle('hover', er <= selRows && ec <= selCols);
+            });
+            tpLabel.textContent = `${selRows} × ${selCols} table`;
+          });
+          picker.appendChild(cell);
+        }
+      }
+      tpLabel.textContent = `${selRows} × ${selCols} table`;
+    }
+
+    document.getElementById('tp-cancel').addEventListener('click', () => tableModal.classList.remove('open'));
+    tableModal.addEventListener('click', (e) => { if (e.target === tableModal) tableModal.classList.remove('open'); });
+
+    document.getElementById('tp-insert').addEventListener('click', () => {
+      tableModal.classList.remove('open');
+      insertTable(selRows, selCols);
+      document.getElementById('note-content').focus();
+      scheduleSave();
+    });
+
+    function insertTable(rows, cols) {
+      let html = '<table><thead><tr>';
+      for (let c = 0; c < cols; c++) html += '<th>Header</th>';
+      html += '</tr></thead><tbody>';
+      for (let r = 0; r < rows - 1; r++) {
+        html += '<tr>';
+        for (let c = 0; c < cols; c++) html += '<td></td>';
+        html += '</tr>';
+      }
+      html += '</tbody></table><p><br></p>';
+      document.execCommand('insertHTML', false, html);
+    }
+
+    // ====== Init ======
+    tryAutoLogin();
+  })();
+  </script>
+</body>
+</html>
